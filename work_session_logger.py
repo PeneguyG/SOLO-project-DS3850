@@ -102,13 +102,6 @@ def session_add():
     if hours_worked.isdigit() == False and isinstance(hours_worked, float):
         clear_errors()
         error_label2.configure(text='Rate must be an number.',fg="#D00000")
-        if client_id 
-            if not client_id:
-                error_label1.configure(text='Please fill in N/A if there is no contact provided.',fg="#D00000")
-                return
-            else:
-                error_label1.configure(text='Please fill in all fields.', fg="#D00000")
-                return
     else:
         clear_errors()
         if not name or not rate or not contact:

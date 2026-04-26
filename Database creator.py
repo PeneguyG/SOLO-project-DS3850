@@ -28,11 +28,11 @@ clients_list = [
         ('Yevgeny Volgin',77,'colonelthunder@gmail.com')
 ]
 
-#parse = '''INSERT INTO clients (name, hourly_rate, contact) VALUES (?,?,?)'''
+parse = '''INSERT INTO clients (name, hourly_rate, contact) VALUES (?,?,?)'''
 
-#for client in clients_list:
-    #cursor.execute(parse, client)
-#conn.commit()
+for client in clients_list:
+    cursor.execute(parse, client)
+conn.commit()
 
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS sessions (
@@ -47,11 +47,15 @@ cursor.execute('''
 
 sessions_list = [
         (1,"2026-23-04",8,"N/A"),
+        (2,"2026-20-04",8,"Performing"),
         (4,"2026-20-04",6,"Moving Stock"),
         (6,"2026-28-04",10,"Cashier"),
         (2,"2026-17-03",8,"Managing first shift"),
         (9,"2026-22-03",10,"Assistant manager"),
+        (9,"2026-22-03",15,"Assistant manager"),
         (10,"2026-18-04",8,"N/A"),
+        (10,"2026-19-04",5,"N/A"),
+        (10,"2026-18-04",12,"N/A"),
 
 ]
 parse = '''INSERT INTO sessions (client_id,date, hours, description) VALUES (?,?,?,?)'''
