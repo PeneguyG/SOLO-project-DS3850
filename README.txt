@@ -9,6 +9,11 @@ After checking all sessions and adding any additional clients or sessions you ca
 how much each client will be recieving when the payday occurs next and after you can run the "invoice_generator.py" to generate
 an invoice for the pay period for your convinence!
 
+Required python packages for the program:
+1- tkinter
+2- pandas
+3- numpy
+
 Instructions:
 1. Run the "Database creator.py" to create a default database or modify the lists in the code to mirror your own clients and sessions
 2. Add any additional sessions or clients you'd like through "work_session_logger.py" or "client_management.py"
