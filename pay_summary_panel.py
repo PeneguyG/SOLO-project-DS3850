@@ -45,19 +45,28 @@ for index, row in client_group.iterrows():
 
 total_hours = np.sum(hour_counts)
 mean_earnings = np.mean(earnings_counts)
-treeVw.insert("",tk.END,values=("Summaries:", "Total hours, Mean Earnings", total_hours, mean_earnings))
+
+treeVw.insert("",tk.END,values=("Summaries:", "Total hours, Mean Earnings", total_hours, np.roundmean_earnings))
 
 def save_to_csv():
     file = file_entry.get()
-    file_format = file + ".csv"
-    client_group.to_csv(file_format, index=False)
+    if not file:
+        error_label.configure(text='Please fill in all fields.', fg="#D00000")
+        return
+    else:
+        file_format = file + ".csv"
+        client_group.to_csv(file_format, index=False)
 
 file_label=tk.Label(root,text='File name',font=('Arial', 12))
 file_label.pack(pady=2)
 file_entry=tk.Entry(root, width=30, font=('Arial',12))
 file_entry.pack(pady=2)
 
+error_label=tk.Label(root,text="",font=('Arial', 12))
+error_label.pack(pady=2)
+
 btn1 = tk.Button(root, text='Save to file .csv',command=save_to_csv,font=('Arial',12), bg='#2E86AB',fg='white')
 btn1.pack(pady=2)
+
 
 root.mainloop()
