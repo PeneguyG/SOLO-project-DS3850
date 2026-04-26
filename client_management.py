@@ -1,5 +1,6 @@
 import sqlite3
 import tkinter as tk
+from tkinter import ttk
 conn = sqlite3.connect('Client_manager.db')
 cursor = conn.cursor()
 
@@ -46,17 +47,17 @@ Creating the functions for the program
 #Adding Clients through input and checking for errors
 def client_add():
 
+    #Clearing the errors 
     error_label1.config(text="")
     error_label2.config(text="")
 
-    #Collecting the input for the 
+    #Collecting the input for the client
     name = name_entry.get().strip()
     rate = rate_entry.get().strip()
     contact = contact_entry.get()
  
-    # .get() works on CTkOptionMenu too
-    if rate.isdigit() == False and isinstance(rate, float):
-        clear_errors()
+    # Checks if the rate is an interger or a float
+    if isinstance(rate, (int,float)) == False:
         error_label2.configure(text='Rate must be an number.',fg="#D00000")
         if not name or not rate or not contact:
             if not contact:
@@ -65,32 +66,30 @@ def client_add():
             else:
                 error_label1.configure(text='Please fill in all fields.', fg="#D00000")
                 return
-    else:
-        clear_errors()
-        if not name or not rate or not contact:
-            if not contact:
+        return
+    elif not name or not rate or not contact:
+        if not contact:
                 error_label1.configure(text='Please fill in N/A if there is no contact provided.',fg="#D00000")
                 return
-            else:
-                error_label1.configure(text='Please input a name.', fg="#D00000")
+        else:
+                error_label1.configure(text='Please fill in all fields.', fg="#D00000")
                 return
-    
-    #Parsing through the input and placing it into the db
-    cursor.execute('''
-    INSERT INTO clients (name,hourly_rate,contact)
-    VALUES (?,?,?)
-    ''', (name, rate, contact))
-    
-    #Committing changes, clearing the textbox to update the list and clearing the fields
-    conn.commit()
-    clear_textbox()
-    client_list()
-    clear()
+    elif not contact:
+        error_label1.configure(text='Please fill in N/A if there is no contact provided.',fg="#D00000")
+        return
+    else:
+        clear_errors()
+        cursor.execute('''
+        INSERT INTO clients (name,hourly_rate,contact)
+        VALUES (?,?,?)
+        ''', (name, rate, contact))
+        conn.commit()
+        clear()
+        tree_reset()
 
-#Clears the textbox displaying the live list of clients
-def clear_textbox():
-    output_widget.delete("1.0", tk.END)
-
+'''
+Creating clearing functions for the program
+'''
 #Clears the errors to output new ones if needed
 def clear_errors():
     error_label1.config(text="")
@@ -98,21 +97,24 @@ def clear_errors():
 
 #Clears everything in the program
 def clear():
-    name_entry.delete(0,tk.END)
-    rate_entry.delete(0,tk.END)
-    contact_entry.delete(0,tk.END)
-    result_label.config(text="")
+    for i in treeVw.get_children():
+        treeVw.delete(i)
     error_label1.config(text="")
     error_label2.config(text="")
+    tree_reset()
 
 #Sets up the printing function of the clients in the textbox to view a live list
-def client_list():
-    cursor.execute("SELECT * FROM clients")
+def tree_reset():
+    cursor.execute('''
+        SELECT id, name, hourly_rate, contact
+        FROM clients
+    ''')
     for row in cursor.fetchall():
-            formating = (f"             {row[0]}    ||    {row[1]}    ||    {row[2]}    ||    {row[3]}    ||    {row[4]}")
-            output_widget.insert(tk.END, formating)
-            output_widget.insert(tk.END, '\n')
+        treeVw.insert("", 'end', values=(row[0],row[1],row[2],row[3]))
 
+'''
+Creating buttons for the user to utilize
+'''
 #Creating a button to Add a client
 btn1 = tk.Button(root, text='Add Client',command=client_add,font=('Arial',12), bg='#2E86AB',fg='white')
 btn1.pack(pady=2)
@@ -121,13 +123,17 @@ btn1.pack(pady=2)
 btn2 = tk.Button(root, text='Clear', command =clear,font=('Arial',12),bg="#AB2E2E",fg='white')
 btn2.pack(pady=2)
 
-#Adding a label above the textbox to explain the items in the db
-widget_label=tk.Label(root,width=50,text="ID || Client name || Hourly pay || Contact || Active (1 = true, 0 = false)",font=('Arial',12))
-widget_label.pack(pady=2)
 
-#Creating the Textbox for the program and calling it to create the intial list
-output_widget=tk.Text(root,width=70, height=20, font=('Arial',12))
-output_widget.pack(pady=2)
-client_list()
+'''
+The Setting up of Treeview
+'''
+treeVw = ttk.Treeview(columns=("id","client_name","rate","contact"), show="headings")
 
+treeVw.heading("id", text="ID")
+treeVw.heading("client_name", text="Client Name")
+treeVw.heading("rate", text="Rate")
+treeVw.heading("contact", text="Contact")
+treeVw.pack()
+
+tree_reset()
 tk.mainloop()

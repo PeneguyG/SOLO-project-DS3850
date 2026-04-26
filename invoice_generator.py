@@ -12,21 +12,30 @@ root = tk.Tk()
 root.title("Sessions list view")
 root.geometry('1024x768')
 
+'''
+Creating the dataframe to contain the Client and session information
+'''
 df=pd.read_sql('''
     SELECT s.client_id, s.date, c.name, s.hours, s.description,c.hourly_rate
     FROM sessions s
     JOIN clients c ON s.client_id=c.id            
     ''',conn)
 
+#tacking on earnings
 df['earnings'] = df['hours'] *df['hourly_rate']
 
+'''
+Creating a groupby to contain client summary information
+'''
 client_group=df.groupby('client_id').agg(
     session_num =('client_id','count'),
     total_hours =('hours','sum'),
     total_earned=('earnings','sum')
 ).reset_index()
 
-
+'''
+Creating the Treeview and Scrollbar
+'''
 treeVw = ttk.Treeview(columns=("client_id","sum_sessions","sum_hours", "sum_earnings"), show="headings")
 scrollbar = ttk.Scrollbar(root, orient ="vertical", command = treeVw.yview)
 
@@ -41,6 +50,10 @@ treeVw.pack()
 
 for index, row in client_group.iterrows():
     treeVw.insert("", tk.END, values=(row['client_id'],row['session_num'],row['total_hours'],row['total_earned']))
+
+'''
+Creating the invoice function
+'''
 def invoice_creator():
     selected_row = treeVw.focus()
     selected_values = treeVw .item(selected_row, 'values')
@@ -74,6 +87,10 @@ def invoice_creator():
             f.write(f"{row['id']}   {row['name']}   {row['date']}    {row['hours']}     {row['hourly_rate']} \n")
         f.write(f"total hours: {total_hours}\n")
         f.write(f"Total due:   {total_earnings}")
+
+'''
+Creating the button for the program
+'''
 btn1 = tk.Button(root, text='Create invoice',command=invoice_creator,font=('Arial',12), bg='#2E86AB',fg='white')
 btn1.pack(pady=2)
 tk.mainloop()

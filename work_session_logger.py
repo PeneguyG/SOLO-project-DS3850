@@ -1,6 +1,7 @@
 import sqlite3
 import tkinter as tk
 import numpy as np
+from tkinter import ttk
 conn = sqlite3.connect('Client_manager.db')
 cursor = conn.cursor()
 
@@ -21,16 +22,13 @@ rows = cursor.fetchall()
 flat = [r[0] for r in rows]
 names = np.array(flat)
 
-#Setting the default for the drop down
 option_men= tk.StringVar(root)
 option_men.set("Select a Client")
-selection=option_men.get()
 
-
-#Creating the dropdown label and menu
 client_label=tk.Label(root,text='Client name',font=('Arial', 12))
 client_label.pack(pady=2)
-client_menu = tk.OptionMenu(root,selection,*flat).pack(pady=10)
+client_menu = tk.OptionMenu(root,option_men,*flat).pack(pady=10)
+
 
 
 '''
@@ -68,61 +66,75 @@ error_label1=tk.Label(root,text="",font=('Arial', 12))
 error_label1.pack(pady=2)
 error_label2=tk.Label(root,text="",font=('Arial', 12))
 error_label2.pack(pady=2)
+error_label3=tk.Label(root,text="",font=('Arial', 12))
+error_label3.pack(pady=2)
 
 '''
 Creating the session function
 '''
 def session_list():
-    cursor.execute("SELECT * FROM sessions")
+    query=('''
+        SELECT s.id, c.name, s.date, s.hours, s.description
+        FROM sessions s
+        JOIN clients c ON s.client_id = c.id
+    ''')
+    cursor.execute(query)
     for row in cursor.fetchall():
-            formating = (f"             {row[0]}    ||    {row[1]}    ||    {row[2]}    ||    {row[3]}    ||    {row[4]}")
-            output_widget.insert(tk.END, formating)
-            output_widget.insert(tk.END, '\n')
-
+        treeV.insert("", 'end', values=(row[0],row[1],row[2],row[3], row[4]))
 #Clears the errors to output new ones if needed
 def clear_errors():
     error_label1.config(text="")
     error_label2.config(text="")
-def session_add():
-    error_label1.config(text="")
-    error_label2.config(text="")
+    error_label3.config(text="")
 
-    #Collecting the input for the 
-    client_name = selection.get().strip()
+    for i in treeV.get_children():
+        treeV.delete(i)
+
+def session_add():
+    clear_errors()
+
+    #Collecting the client name
+    client_name = option_men.get().strip(),
     cursor.execute('''SELECT c.id FROM clients c WHERE c.name = ?
-    ''', (client_name,))
+    ''', (client_name))
+
+    #collecting the client id
     for row in cursor.fetchall():
         client_id = row
+    client_id = int(client_id[0])
 
+    #collecting the data, hours worked and the description
     date = date_entry.get()
     hours_worked = hours_entry.get()
     description = description_entry.get()
 
-    # .get() works on CTkOptionMenu too
+    format_date = date.replace("-", "").replace(" ","").replace("/","")
+
     if hours_worked.isdigit() == False and isinstance(hours_worked, float):
-        clear_errors()
-        error_label2.configure(text='Rate must be an number.',fg="#D00000")
+        error_label1.configure(text='Rate must be an number.',fg="#D00000")
+        if len(format_date) != 8:
+            error_label2.configure(text="Invalid date (Must contain 8 numbers)",fg="#D00000")
+            if not client_id:
+                error_label3.configure(text="Invalid date (Must contain 8 numbers)",fg="#D00000")
+            return
+        return
+    elif len(format_date) != 8:
+            error_label2.configure(text="Invalid phone number (Must contain 8 numbers)",fg="#D00000")
+            if not client_id:
+                error_label3.configure(text="Invalid phone number (Must contain 8 numbers)",fg="#D00000")
+            return
     else:
-        clear_errors()
-        if not name or not rate or not contact:
-            if not contact:
-                error_label1.configure(text='Please fill in N/A if there is no contact provided.',fg="#D00000")
-                return
-            else:
-                error_label1.configure(text='Please input a name.', fg="#D00000")
-                return
-    
-    #Parsing through the input and placing it into the db
-    cursor.execute('''
-    INSERT INTO sessions (client_id,date,hours,description)
-    VALUES (?,?,?)
-    ''', (client_id, rate, contact))
+        insert_date= f"{format_date[0:4]}-{format_date[4:6]}-{format_date[6:8]}"
+        cursor.execute('''
+        INSERT INTO sessions (client_id,date,hours,description)
+        VALUES (?,?,?,?)
+        ''', (client_id, insert_date,hours_worked,description))
+
     
     #Committing changes, clearing the textbox to update the list and clearing the fields
     conn.commit()
-    clear_textbox()
-    session_list()
     clear()
+    session_list()
     
 
 
@@ -130,12 +142,9 @@ def session_add():
 Creating the Clearing function
 '''
 def clear():
-    date_entry.delete(0,tk.END)
-    hours_entry.delete(0,tk.END)
-    description_entry.delete(0,tk.END)
-    result_label.config(text="")
     error_label1.config(text="")
     error_label2.config(text="")
+
 
 btn1 = tk.Button(root, text='Add Session',command=session_add,font=('Arial',12), bg='#2E86AB',fg='white')
 btn1.pack(pady=2)
@@ -144,13 +153,14 @@ btn1.pack(pady=2)
 btn2 = tk.Button(root, text='Clear', command =clear,font=('Arial',12),bg="#AB2E2E",fg='white')
 btn2.pack(pady=2)
 
-#Adding a label above the textbox to explain the items in the db
-widget_label=tk.Label(root,width=50,text="Session ID || Client ID || Hours worked  || Description)",font=('Arial',12))
-widget_label.pack(pady=2)
+treeV = ttk.Treeview(columns=("id","client_name","date", "hours", "description"), show="headings")
 
-#Creating the Textbox for the program and calling it to create the intial list
-output_widget=tk.Text(root,width=70, height=20, font=('Arial',12))
-output_widget.pack(pady=2)
+treeV.heading("id", text="Session ID")
+treeV.heading("client_name", text="Client Name")
+treeV.heading("date", text="Date")
+treeV.heading("hours", text="Hours")
+treeV.heading("description", text="Description")
+treeV.pack()
+
 session_list()
-
 tk.mainloop()
