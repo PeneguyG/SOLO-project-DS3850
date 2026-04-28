@@ -64,7 +64,7 @@ Computing the total hours and mean earnings and inserting them into the tree vie
 total_hours = np.sum(hour_counts)
 mean_earnings = np.mean(earnings_counts)
 
-treeVw.insert("",tk.END,values=("Summaries:", "Total hours, Mean Earnings", total_hours, np.roundmean_earnings))
+treeVw.insert("",tk.END,values=("Summaries:", "Total hours, Mean Earnings", total_hours, np.round(mean_earnings)))
 
 
 '''
